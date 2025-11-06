@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>爱心思念弹窗</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body, html {
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            background-color: #f0f8ff;
+            position: relative;
+        }
+        .love-card {
+            position: absolute;
+            padding: 5px 9px;
+            border-radius: 12px;
+            color: white;
+            font-size: 11px;
+            pointer-events: none;
+            opacity: 1;
+            transition: all 1s ease-out;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .center-text {
+            position: absolute;
+            top: 50%;
+            left: 40%;
+            transform: translate(-50%, -50%);
+            color: #ff69b4;
+            font-size: 16px;
+            font-weight: bold;
+            z-index: 100;
+            opacity: 0;
+            transition: opacity 1s;
+        }
+    </style>
+</head>
+<body>
+    <div class="center-text">for you ❤️</div>
+    <script>
+        const loveTexts = [
+            "遇见你后时间变慢", "心只为你加速", "想牵你的手看日落", "你的名字是我心事", "思念在反复", "每次想你星星都亮了", "有你真好", "你是我唯一"
+        ];
+
+        // 生成随机渐变色
+        function getRandomGradient() {
+            const colors = ["#ff6b6b", "#ffa502", "#87cefa", "#90ee90", "#ee82ee", "#ffc0cb", "#00ced1", "#f0e68c"];
+            const color1 = colors[Math.floor(Math.random() * colors.length)];
+            const color2 = colors[Math.floor(Math.random() * colors.length)];
+            return `linear-gradient(45deg, ${color1}, ${color2})`;
+        }
+
+        // 精准爱心坐标（正立、对称）
+        function getHeartPoint(angle, size) {
+            const t = angle * Math.PI / 180;
+            const x = 16 * Math.sin(t) ** 3;
+            const y = -(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t));
+            return { x: x * size, y: y * size };
+        }
+
+        // 保持10%左移，精准居中感
+        const centerX = window.screen.width / 2 - window.screen.width * 0.1;
+        const centerY = window.screen.height / 2;
+        const heartSize = Math.min(window.screen.width, window.screen.height) / 40;
+        const maxCards = 130; // 适配均匀分布的密度
+        let cardCount = 0;
+        const usedAngles = new Set(); // 避免角度重复，确保均匀
+
+        function createLoveCard() {
+            const div = document.createElement('div');
+            div.className = 'love-card';
+            div.textContent = loveTexts[Math.floor(Math.random() * loveTexts.length)];
+            div.style.background = getRandomGradient();
+            
+            // 四角均匀启动，避免偏向某一方向
+            const posType = Math.floor(Math.random() * 4);
+            let startX, startY;
+            switch(posType) {
+                case 0: startX = 0; startY = 0; break;
+                case 1: startX = window.screen.width; startY = 0; break;
+                case 2: startX = 0; startY = window.screen.height; break;
+                case 3: startX = window.screen.width; startY = window.screen.height; break;
+            }
+            div.style.left = `${startX}px`;
+            div.style.top = `${startY}px`;
+            document.body.appendChild(div);
+
+            cardCount++;
+
+            // 均匀分配角度（0-360度，步长3度），避免局部密集
+            let angle;
+            do {
+                angle = Math.floor(Math.random() * 120) * 3; // 0,3,6...357度
+            } while (usedAngles.has(angle) && usedAngles.size < 120);
+            usedAngles.add(angle);
+
+            const point = getHeartPoint(angle, heartSize);
+            const targetX = centerX + point.x;
+            const targetY = centerY + point.y;
+
+            // 随机微调，增加自然感，避免排列僵硬
+            const offsetX = (Math.random() - 0.5) * heartSize * 0.6;
+            const offsetY = (Math.random() - 0.5) * heartSize * 0.6;
+            const finalX = targetX + offsetX;
+            const finalY = targetY + offsetY;
+
+            setTimeout(() => {
+                div.style.left = `${finalX}px`;
+                div.style.top = `${finalY}px`;
+                div.style.transform = `rotate(${Math.random() * 60}deg)`;
+                
+                if (cardCount >= maxCards) {
+                    document.querySelector('.center-text').style.opacity = '1';
+                }
+            }, 100);
+        }
+
+        // 平稳生成，确保均匀分布
+        window.onload = function() {
+            const interval = setInterval(() => {
+                if (cardCount < maxCards) createLoveCard();
+                else clearInterval(interval);
+            }, 70);
+        };
+    </script>
+</body>
+</html>
